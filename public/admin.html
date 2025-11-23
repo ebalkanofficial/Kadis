@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>KADİS – Admin Paneli</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-950 min-h-screen flex items-center justify-center">
+
+  <div class="bg-slate-900 border border-slate-800 shadow-xl rounded-2xl p-8 w-full max-w-5xl text-slate-50">
+    <!-- Üst bar: Logo + Başlık + Logout -->
+    <div class="flex flex-col md:flex-row md:justify-between md:items-center mb-6 gap-3">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-lg bg-blue-500 flex items-center justify-center font-extrabold text-slate-50">
+          K
+        </div>
+        <div>
+          <div class="font-semibold tracking-tight text-sm">KADİS</div>
+          <div class="text-[11px] text-slate-400">
+            Kariyer Doğrulama ve İş Sicil Sistemi – Admin Paneli
+          </div>
+        </div>
+      </div>
+      <button
+        id="logoutBtn"
+        class="self-start md:self-auto bg-red-500 text-white text-xs font-semibold px-4 py-2 rounded-lg hover:bg-red-600">
+        Çıkış Yap
+      </button>
+    </div>
+
+    <!-- Tabs -->
+    <div class="mb-4 border-b border-slate-800 flex text-sm">
+      <button id="tabOverview" class="px-4 py-2 border-b-2 border-blue-500 font-semibold">
+        Genel Özet
+      </button>
+      <button id="tabCandidates" class="px-4 py-2 border-b-2 border-transparent text-slate-400 hover:text-slate-200">
+        Adaylar
+      </button>
+      <button id="tabUsers" class="px-4 py-2 border-b-2 border-transparent text-slate-400 hover:text-slate-200">
+        Kullanıcılar
+      </button>
+      <button id="tabQueries" class="px-4 py-2 border-b-2 border-transparent text-slate-400 hover:text-slate-200">
+        Sorgular
+      </button>
+    </div>
+
+    <!-- İçerikler -->
+    <div id="viewOverview">
+      <h2 class="text-lg font-bold mb-3">Sistem Özeti</h2>
+      <div id="overviewContent" class="grid md:grid-cols-4 gap-3 text-xs">
+        <div class="bg-slate-950 border border-slate-800 rounded-lg p-3">
+          <div class="text-slate-400 mb-1">Toplam Aday Kaydı</div>
+          <div id="ovTotalCandidates" class="text-2xl font-bold">-</div>
+        </div>
+        <div class="bg-slate-950 border border-slate-800 rounded-lg p-3">
+          <div class="text-slate-400 mb-1">Aktif Aday</div>
+          <div id="ovActiveCandidates" class="text-2xl font-bold text-emerald-300">-</div>
+        </div>
+        <div class="bg-slate-950 border border-slate-800 rounded-lg p-3">
+          <div class="text-slate-400 mb-1">Arşivlenmiş Aday</div>
+          <div id="ovArchivedCandidates" class="text-2xl font-bold text-amber-300">-</div>
+        </div>
+        <div class="bg-slate-950 border border-slate-800 rounded-lg p-3">
+          <div class="text-slate-400 mb-1">Toplam Sorgu</div>
+          <div id="ovTotalQueries" class="text-2xl font-bold text-blue-300">-</div>
+        </div>
+      </div>
+
+      <div class="mt-5 grid md:grid-cols-3 gap-3 text-xs">
+        <div class="bg-slate-950 border border-slate-800 rounded-lg p-3">
+          <div class="text-slate-400 mb-1">Aday Kullanıcılar</div>
+          <div id="ovUserCandidate" class="text-xl font-bold">-</div>
+        </div>
+        <div class="bg-slate-950 border border-slate-800 rounded-lg p-3">
+          <div class="text-slate-400 mb-1">İşveren Kullanıcılar</div>
+          <div id="ovUserEmployer" class="text-xl font-bold">-</div>
+        </div>
+        <div class="bg-slate-950 border border-slate-800 rounded-lg p-3">
+          <div class="text-slate-400 mb-1">Admin Kullanıcılar</div>
+          <div id="ovUserAdmin" class="text-xl font-bold text-amber-300">-</div>
+        </div>
+      </div>
+    </div>
+
+    <div id="viewCandidates" class="hidden">
+      <h2 class="text-lg font-bold mb-3">Tüm Aday Kayıtları</h2>
+      <div id="candidatesContent" class="bg-slate-950 border border-slate-800 rounded-lg p-3 max-h-96 overflow-auto text-xs">
+        Yükleniyor...
+      </div>
+    </div>
+
+    <div id="viewUsers" class="hidden">
+      <h2 class="text-lg font-bold mb-3">Tüm Kullanıcılar</h2>
+      <div id="usersContent" class="bg-slate-950 border border-slate-800 rounded-lg p-3 max-h-96 overflow-auto text-xs">
+        Yükleniyor...
+      </div>
+    </div>
+
+    <div id="viewQueries" class="hidden">
+      <h2 class="text-lg font-bold mb-3">Tüm Sorgular</h2>
+      <div id="queriesContent" class="bg-slate-950 border border-slate-800 rounded-lg p-3 max-h-96 overflow-auto text-xs">
+        Yükleniyor...
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const token = localStorage.getItem('token');
+    const role = localStorage.getItem('role');
+
+    if (!token || role !== 'admin') {
+      alert('Bu sayfayı sadece admin kullanıcılar görüntüleyebilir.');
+      window.location.href = '/login.html';
+    }
+
+    const logoutBtn = document.getElementById('logoutBtn');
+    logoutBtn.addEventListener('click', () => {
+      localStorage.removeItem('token');
+      localStorage.removeItem('role');
+      window.location.href = '/login.html';
+    });
+
+    // Tablar
+    const tabOverview = document.getElementById('tabOverview');
+    const tabCandidates = document.getElementById('tabCandidates');
+    const tabUsers = document.getElementById('tabUsers');
+    const tabQueries = document.getElementById('tabQueries');
+
+    const viewOverview = document.getElementById('viewOverview');
+    const viewCandidates = document.getElementById('viewCandidates');
+    const viewUsers = document.getElementById('viewUsers');
+    const viewQueries = document.getElementById('viewQueries');
+
+    function showTab(tab) {
+      const allTabs = [tabOverview, tabCandidates, tabUsers, tabQueries];
+      const allViews = [viewOverview, viewCandidates, viewUsers, viewQueries];
+
+      allTabs.forEach(t => {
+        t.classList.remove('border-blue-500', 'font-semibold');
+        t.classList.add('text-slate-400');
+      });
+      allViews.forEach(v => v.classList.add('hidden'));
+
+      if (tab === 'overview') {
+        tabOverview.classList.add('border-blue-500', 'font-semibold');
+        tabOverview.classList.remove('text-slate-400');
+        viewOverview.classList.remove('hidden');
+      } else if (tab === 'candidates') {
+        tabCandidates.classList.add('border-blue-500', 'font-semibold');
+        tabCandidates.classList.remove('text-slate-400');
+        viewCandidates.classList.remove('hidden');
+      } else if (tab === 'users') {
+        tabUsers.classList.add('border-blue-500', 'font-semibold');
+        tabUsers.classList.remove('text-slate-400');
+        viewUsers.classList.remove('hidden');
+      } else if (tab === 'queries') {
+        tabQueries.classList.add('border-blue-500', 'font-semibold');
+        tabQueries.classList.remove('text-slate-400');
+        viewQueries.classList.remove('hidden');
+      }
+    }
+
+    tabOverview.addEventListener('click', () => showTab('overview'));
+    tabCandidates.addEventListener('click', () => showTab('candidates'));
+    tabUsers.addEventListener('click', () => showTab('users'));
+    tabQueries.addEventListener('click', () => showTab('queries'));
+
+    // Başlangıç tabı
+    showTab('overview');
+
+    // ---- API çağrıları ----
+    async function fetchJSON(url) {
+      const res = await fetch(url, {
+        headers: {
+          'Authorization': 'Bearer ' + token
+        }
+      });
+      if (!res.ok) {
+        throw new Error('HTTP ' + res.status);
+      }
+      return res.json();
+    }
+
+    async function loadOverview() {
+      try {
+        const data = await fetchJSON('/api/admin/overview');
+        document.getElementById('ovTotalCandidates').textContent = data.totalCandidates;
+        document.getElementById('ovActiveCandidates').textContent = data.activeCandidates;
+        document.getElementById('ovArchivedCandidates').textContent = data.archivedCandidates;
+        document.getElementById('ovTotalQueries').textContent = data.totalQueries;
+        document.getElementById('ovUserCandidate').textContent = data.usersByRole.candidate;
+        document.getElementById('ovUserEmployer').textContent = data.usersByRole.employer;
+        document.getElementById('ovUserAdmin').textContent = data.usersByRole.admin;
+      } catch (err) {
+        console.error(err);
+        document.getElementById('overviewContent').innerHTML =
+          '<div class="text-red-400 text-xs">Özet bilgileri yüklerken hata oluştu.</div>';
+      }
+    }
+
+    async function loadCandidates() {
+      const container = document.getElementById('candidatesContent');
+      try {
+        const list = await fetchJSON('/api/admin/candidates');
+        if (!list.length) {
+          container.innerHTML = '<p class="text-slate-500">Sistemde aday kaydı bulunmuyor.</p>';
+          return;
+        }
+
+        const rows = list.map(c => `
+          <tr class="border-b border-slate-800 last:border-b-0">
+            <td class="py-1 px-1 font-mono text-[11px]">${c.code}</td>
+            <td class="py-1 px-1">${c.fullName}</td>
+            <td class="py-1 px-1">${c.email}</td>
+            <td class="py-1 px-1">${c.position || '-'}</td>
+            <td class="py-1 px-1">${c.ownerEmail || '-'}</td>
+            <td class="py-1 px-1">${c.isArchived ? 'Arşivli' : 'Aktif'}</td>
+            <td class="py-1 px-1 text-[11px]">${c.createdAt}</td>
+          </tr>
+        `).join('');
+
+        container.innerHTML = `
+          <table class="w-full text-[11px]">
+            <thead>
+              <tr class="border-b border-slate-800">
+                <th class="text-left py-1 px-1">KADİS Kodu</th>
+                <th class="text-left py-1 px-1">Ad Soyad</th>
+                <th class="text-left py-1 px-1">E-posta</th>
+                <th class="text-left py-1 px-1">Pozisyon</th>
+                <th class="text-left py-1 px-1">Sahip (owner)</th>
+                <th class="text-left py-1 px-1">Durum</th>
+                <th class="text-left py-1 px-1">Oluşturma</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${rows}
+            </tbody>
+          </table>
+        `;
+      } catch (err) {
+        console.error(err);
+        container.innerHTML = '<p class="text-red-400">Aday listesi yüklenemedi.</p>';
+      }
+    }
+
+    async function loadUsers() {
+      const container = document.getElementById('usersContent');
+      try {
+        const list = await fetchJSON('/api/admin/users');
+        if (!list.length) {
+          container.innerHTML = '<p class="text-slate-500">Sistemde kullanıcı yok.</p>';
+          return;
+        }
+
+        const rows = list.map(u => `
+          <tr class="border-b border-slate-800 last:border-b-0">
+            <td class="py-1 px-1">${u.email}</td>
+            <td class="py-1 px-1">${u.role}</td>
+            <td class="py-1 px-1 text-[11px]">${u.createdAt}</td>
+          </tr>
+        `).join('');
+
+        container.innerHTML = `
+          <table class="w-full text-[11px]">
+            <thead>
+              <tr class="border-b border-slate-800">
+                <th class="text-left py-1 px-1">E-posta</th>
+                <th class="text-left py-1 px-1">Rol</th>
+                <th class="text-left py-1 px-1">Oluşturma</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${rows}
+            </tbody>
+          </table>
+        `;
+      } catch (err) {
+        console.error(err);
+        container.innerHTML = '<p class="text-red-400">Kullanıcı listesi yüklenemedi.</p>';
+      }
+    }
+
+    async function loadQueries() {
+      const container = document.getElementById('queriesContent');
+      try {
+        const list = await fetchJSON('/api/admin/queries');
+        if (!list.length) {
+          container.innerHTML = '<p class="text-slate-500">Henüz sorgu yapılmamış.</p>';
+          return;
+        }
+
+        const rows = list.map(q => `
+          <tr class="border-b border-slate-800 last:border-b-0">
+            <td class="py-1 px-1 font-mono text-[11px]">${q.code}</td>
+            <td class="py-1 px-1">${q.candidateFullName || '-'}</td>
+            <td class="py-1 px-1">${q.employerEmail}</td>
+            <td class="py-1 px-1 text-[11px]">${q.lookedAtAt}</td>
+          </tr>
+        `).join('');
+
+        container.innerHTML = `
+          <table class="w-full text-[11px]">
+            <thead>
+              <tr class="border-b border-slate-800">
+                <th class="text-left py-1 px-1">KADİS Kodu</th>
+                <th class="text-left py-1 px-1">Aday</th>
+                <th class="text-left py-1 px-1">İşveren (email)</th>
+                <th class="text-left py-1 px-1">Tarih</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${rows}
+            </tbody>
+          </table>
+        `;
+      } catch (err) {
+        console.error(err);
+        container.innerHTML = '<p class="text-red-400">Sorgu listesi yüklenemedi.</p>';
+      }
+    }
+
+    // Sayfa yüklenince verileri al
+    loadOverview();
+    loadCandidates();
+    loadUsers();
+    loadQueries();
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>KADİS – İşveren Doğrulama</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Yazdırma (PDF) modunda sadece aday raporunu göster -->
+  <style>
+    @media print {
+      body * {
+        visibility: hidden !important;
+      }
+      #result, #result * {
+        visibility: visible !important;
+      }
+      #result {
+        position: absolute;
+        inset: 0;
+        margin: 0;
+        padding: 16px;
+      }
+    }
+  </style>
+</head>
+<body class="bg-slate-950 min-h-screen flex items-center justify-center">
+
+  <div class="bg-slate-900 border border-slate-800 shadow-xl rounded-2xl p-8 w-full max-w-4xl text-slate-50">
+    <!-- Üst bar: Logo + Başlık + Logout -->
+    <div class="flex flex-col md:flex-row md:justify-between md:items-center mb-6 gap-3">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-lg bg-blue-500 flex items-center justify-center font-extrabold text-slate-50">
+          K
+        </div>
+        <div>
+          <div class="font-semibold tracking-tight text-sm">KADİS</div>
+          <div class="text-[11px] text-slate-400">
+            Kariyer Doğrulama ve İş Sicil Sistemi – İşveren Paneli
+          </div>
+        </div>
+      </div>
+      <button
+        id="logoutBtn"
+        class="self-start md:self-auto bg-red-500 text-white text-xs font-semibold px-4 py-2 rounded-lg hover:bg-red-600">
+        Çıkış Yap
+      </button>
+    </div>
+
+    <div class="grid md:grid-cols-2 gap-8">
+      <!-- Sol: Kod sorgulama + rapor -->
+      <div>
+        <h1 class="text-xl font-bold mb-3">Aday Doğrulama Ekranı</h1>
+        <p class="text-xs text-slate-300 mb-4">
+          Adayın size ilettiği KADİS doğrulama kodunu girerek, fotoğraflı ve özetlenmiş profilini inceleyebilirsiniz.
+          KADİS kodları oluşturulduktan sonra <span class="font-semibold text-emerald-300">7 gün boyunca geçerlidir</span>.
+          Adaydan gelen link veya QR kod ile açtıysanız, kod alanı otomatik dolacaktır.
+        </p>
+
+        <form id="verifyForm" class="space-y-4">
+          <div>
+            <label class="font-semibold text-sm">KADİS Doğrulama Kodu</label>
+            <input id="code" type="text"
+              class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 mt-1 text-sm uppercase"
+              required />
+          </div>
+
+          <div class="flex gap-2">
+            <button type="submit"
+              class="flex-1 bg-blue-500 text-white font-semibold py-2 rounded-lg hover:bg-blue-600 text-sm">
+              Sorgula
+            </button>
+
+            <!-- PDF / Yazdır butonu (başta gizli) -->
+            <button type="button" id="printBtn"
+              class="flex-1 bg-slate-700 text-white font-semibold py-2 rounded-lg hover:bg-slate-600 text-sm"
+              style="display:none;">
+              PDF / Yazdır
+            </button>
+          </div>
+        </form>
+
+        <div id="result" class="text-left mt-6 text-slate-50"></div>
+      </div>
+
+      <!-- Sağ: İşveren Dashboard -->
+      <div>
+        <h2 class="text-lg font-bold mb-2">Son KADİS Sorgularınız</h2>
+        <p class="text-xs text-slate-300 mb-3">
+          Bu hesapla KADİS üzerinden yaptığınız son aday sorguları:
+        </p>
+        <div id="myQueries" class="bg-slate-950 border border-slate-800 rounded-lg p-3 max-h-80 overflow-auto text-xs">
+          <p class="text-slate-500">Yükleniyor...</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const form = document.getElementById('verifyForm');
+    const resultDiv = document.getElementById('result');
+    const myQueriesDiv = document.getElementById('myQueries');
+    const printBtn = document.getElementById('printBtn');
+    const logoutBtn = document.getElementById('logoutBtn');
+    const codeInput = document.getElementById('code');
+
+    const token = localStorage.getItem('token');
+    const role = localStorage.getItem('role');
+
+    if (!token || role !== 'employer') {
+      alert('Bu sayfayı kullanmak için önce işveren olarak KADİS\'e giriş yapmalısınız.');
+      window.location.href = '/login.html';
+    }
+
+    function logout() {
+      localStorage.removeItem('token');
+      localStorage.removeItem('role');
+      window.location.href = '/login.html';
+    }
+
+    logoutBtn.addEventListener('click', logout);
+
+    async function loadMyQueries() {
+      try {
+        const res = await fetch('/api/my-queries', {
+          headers: {
+            'Authorization': 'Bearer ' + token
+          }
+        });
+
+        if (!res.ok) {
+          myQueriesDiv.innerHTML = '<p class="text-red-400">Sorgular yüklenemedi.</p>';
+          return;
+        }
+
+        const list = await res.json();
+
+        if (!list.length) {
+          myQueriesDiv.innerHTML = '<p class="text-slate-500">Henüz KADİS üzerinden sorgu yapılmamış.</p>';
+          return;
+        }
+
+        const rows = list.map(item => `
+          <tr class="border-b border-slate-800 last:border-b-0">
+            <td class="py-1 px-1 font-mono text-[11px]">${item.code}</td>
+            <td class="py-1 px-1">${item.candidateFullName || '-'}</td>
+            <td class="py-1 px-1 text-right text-[11px]">${new Date(item.lookedAtAt).toLocaleString()}</td>
+          </tr>
+        `).join('');
+
+        myQueriesDiv.innerHTML = `
+          <table class="w-full text-[11px]">
+            <thead>
+              <tr class="border-b border-slate-800">
+                <th class="text-left py-1 px-1">KADİS Kodu</th>
+                <th class="text-left py-1 px-1">Aday</th>
+                <th class="text-right py-1 px-1">Tarih</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${rows}
+            </tbody>
+          </table>
+        `;
+      } catch (err) {
+        console.error(err);
+        myQueriesDiv.innerHTML = '<p class="text-red-400">Sunucu hatası.</p>';
+      }
+    }
+
+    loadMyQueries();
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const code = codeInput.value.trim();
+
+      if (!code) {
+        resultDiv.textContent = 'Lütfen bir KADİS doğrulama kodu girin.';
+        printBtn.style.display = 'none';
+        return;
+      }
+
+      try {
+        const res = await fetch('/api/candidates/' + code, {
+          headers: {
+            'Authorization': 'Bearer ' + token
+          }
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          resultDiv.innerHTML = `<p class="text-red-400 font-bold">${data.message}</p>`;
+          printBtn.style.display = 'none';
+          return;
+        }
+
+        const expText = data.expiresAt
+          ? new Date(data.expiresAt).toLocaleString()
+          : '-';
+
+        const photoHtml = data.photoFilename
+          ? `<div class="w-24 h-24 rounded-full overflow-hidden border border-slate-600">
+               <img src="/uploads/${data.photoFilename}" alt="Aday fotoğrafı"
+                    class="w-full h-full object-cover" />
+             </div>`
+          : `<div class="w-24 h-24 rounded-full border border-dashed border-slate-600 flex items-center justify-center text-[11px] text-slate-400">
+               Fotoğraf yok
+             </div>`;
+
+        resultDiv.innerHTML = `
+          <div class="bg-slate-950 border border-slate-800 rounded-xl p-4 space-y-4 mt-4">
+
+            <!-- KADİS başlığı (PDF'de de görünecek) -->
+            <div class="border-b border-slate-800 pb-2 mb-2">
+              <div class="text-sm font-semibold">KADİS – Kariyer Doğrulama ve İş Sicil Sistemi</div>
+              <div class="text-[11px] text-slate-400">Resmi Doğrulanmış Profil Raporu</div>
+            </div>
+
+            <!-- Üst kısım: Foto + temel bilgiler + rozet/kod/tarih hepsi kart içinde -->
+            <div class="flex items-start gap-3">
+              ${photoHtml}
+              <div class="flex-1">
+                <h2 class="text-xl font-bold text-slate-50 break-words">${data.fullName}</h2>
+                <p class="text-sm text-slate-300 break-all">${data.email}</p>
+                <p class="mt-1 text-sm"><b>Başvurulan Pozisyon:</b> ${data.position || '-'}</p>
+
+                <div class="mt-2 flex flex-wrap items-center gap-2 text-[11px] text-slate-300">
+                  <span class="inline-block bg-emerald-500/20 text-emerald-300 font-semibold px-3 py-1 rounded-full">
+                    KADİS Doğrulanmış Profil
+                  </span>
+                  <span>|</span>
+                  <span><b>Kayıt Tarihi:</b> ${data.createdAt}</span>
+                  <span>|</span>
+                  <span><b>KADİS Kodu:</b> ${code.toUpperCase()}</span>
+                  <span>|</span>
+                  <span><b>Kod Geçerlilik Bitişi:</b> ${expText}</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="bg-slate-900 border border-slate-800 rounded-lg p-3">
+              <h3 class="text-sm font-bold text-slate-100 mb-2">ÖZET BİLGİLER (Simüle Edilmiş SGK Verisi)</h3>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-slate-200">
+                <div>
+                  <span class="font-semibold">T.C. Kimlik No:</span>
+                  <span class="ml-1">${data.nationalId || '-'}</span>
+                </div>
+                <div>
+                  <span class="font-semibold">Toplam Prim Günü:</span>
+                  <span class="ml-1">${data.totalPrimDays || '-'}</span>
+                </div>
+                <div>
+                  <span class="font-semibold">Son Çalıştığı Şirket:</span>
+                  <span class="ml-1">${data.lastCompany || '-'}</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="bg-slate-900 border border-slate-800 rounded-lg p-3">
+              <h3 class="text-sm font-bold text-slate-100 mb-2">İŞ GEÇMİŞİ / DENEYİM ÖZETİ</h3>
+              <pre class="whitespace-pre-wrap text-sm text-slate-200">${data.experience || '-'}</pre>
+            </div>
+          </div>
+        `;
+
+        // Sorgu sonrası dashboard'u güncelle
+        loadMyQueries();
+
+        // Rapor başarıyla geldi, PDF butonunu göster
+        printBtn.style.display = 'block';
+      } catch (err) {
+        console.error(err);
+        resultDiv.textContent = 'Sunucuya bağlanırken hata oluştu.';
+        printBtn.style.display = 'none';
+      }
+    });
+
+    // PDF / Yazdır butonu davranışı
+    printBtn.addEventListener('click', () => {
+      window.print();
+    });
+
+    // URL'den "code" parametresini yakala (QR veya link ile gelindiyse)
+    const params = new URLSearchParams(window.location.search);
+    const preCode = params.get('code');
+
+    if (preCode) {
+      codeInput.value = preCode.toUpperCase();
+      // Sayfa yüklendiğinde kod doluysa otomatik sorgula
+      setTimeout(() => {
+        form.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+      }, 150);
+    }
+  </script>
+
+</body>
+</html>

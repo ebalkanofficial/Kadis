@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>KADİS – Aday Kayıt</title>
+
+  <!-- Tailwind -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- QR kod için kütüphane -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+</head>
+<body class="bg-slate-950 min-h-screen flex items-center justify-center">
+
+  <div class="bg-slate-900 border border-slate-800 shadow-xl rounded-2xl p-8 w-full max-w-4xl text-slate-50">
+    <!-- Üst bar: Logo + Başlık + Logout -->
+    <div class="flex flex-col md:flex-row md:justify-between md:items-center mb-6 gap-3">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-lg bg-blue-500 flex items-center justify-center font-extrabold text-slate-50">
+          K
+        </div>
+        <div>
+          <div class="font-semibold tracking-tight text-sm">KADİS</div>
+          <div class="text-[11px] text-slate-400">
+            Kariyer Doğrulama ve İş Sicil Sistemi – Aday Paneli
+          </div>
+        </div>
+      </div>
+      <button
+        id="logoutBtn"
+        class="self-start md:self-auto bg-red-500 text-white text-xs font-semibold px-4 py-2 rounded-lg hover:bg-red-600">
+        Çıkış Yap
+      </button>
+    </div>
+
+    <div class="grid md:grid-cols-2 gap-8">
+      <!-- Sol: Form -->
+      <div>
+        <h1 class="text-xl font-bold mb-3">Aday Kayıt Formu</h1>
+        <p class="text-xs text-slate-300 mb-4">
+          Aşağıdaki bilgileri doldurarak KADİS üzerinde doğrulama kodu oluşturabilirsiniz.
+          Bu kodu işverenlerle paylaşarak profilinizi görüntülemelerini sağlayın.
+          <span class="font-semibold text-emerald-300">Her KADİS kodu 7 gün boyunca geçerlidir.</span>
+        </p>
+
+        <form id="candidateForm" class="space-y-4" enctype="multipart/form-data">
+          
+          <div>
+            <label class="font-semibold text-sm">Ad Soyad</label>
+            <input id="fullName" type="text"
+              class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 mt-1 text-sm"
+              required />
+          </div>
+
+          <div>
+            <label class="font-semibold text-sm">E-posta</label>
+            <input id="email" type="email"
+              class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 mt-1 text-sm"
+              required />
+          </div>
+
+          <div>
+            <label class="font-semibold text-sm">T.C. Kimlik No (Simülasyon)</label>
+            <input id="nationalId" type="text"
+              class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 mt-1 text-sm"
+              placeholder="11 haneli olmak zorunda değil" />
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div>
+              <label class="font-semibold text-sm">Toplam Prim Günü</label>
+              <input id="totalPrimDays" type="number"
+                class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 mt-1 text-sm"
+                placeholder="Örn: 2650" />
+            </div>
+
+            <div>
+              <label class="font-semibold text-sm">Son Çalıştığı Şirket</label>
+              <input id="lastCompany" type="text"
+                class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 mt-1 text-sm"
+                placeholder="Örn: ABC Turizm A.Ş." />
+            </div>
+          </div>
+
+          <div>
+            <label class="font-semibold text-sm">Başvurulan Pozisyon</label>
+            <input id="position" type="text"
+              class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 mt-1 text-sm"
+              placeholder="Örn: İnsan Kaynakları Uzmanı" />
+          </div>
+
+          <div>
+            <label class="font-semibold text-sm">İş Geçmişi / Deneyim Özeti</label>
+            <textarea id="experience" rows="4"
+              class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 mt-1 text-sm"
+              placeholder="- 2018–2021: X Firması / Pozisyon
+- 2021–2024: Y Firması / Pozisyon"></textarea>
+          </div>
+
+          <div>
+            <label class="font-semibold text-sm">Fotoğraf (isteğe bağlı)</label>
+            <input id="photo" type="file" accept="image/*"
+              class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 mt-1 text-sm" />
+            <p class="text-[11px] text-slate-400 mt-1">
+              Yüklediğiniz fotoğraf, işverenin KADİS doğrulama ekranında görünecektir.
+            </p>
+          </div>
+
+          <button type="submit"
+            class="w-full bg-blue-500 text-white font-semibold py-2 rounded-lg hover:bg-blue-600 text-sm">
+            KADİS Doğrulama Kodu Oluştur
+          </button>
+        </form>
+
+        <div id="result" class="mt-4 text-sm text-center text-emerald-400"></div>
+      </div>
+
+      <!-- Sağ: Dashboard -->
+      <div>
+        <h2 class="text-lg font-bold mb-2">Oluşturduğunuz KADİS Kodları</h2>
+        <p class="text-xs text-slate-300 mb-3">
+          Bu hesapla oluşturduğunuz en güncel KADİS kodu ve kayıtlar (kodlar 7 gün geçerlidir, yeni kod alırsanız eski kodlar iptal edilir):
+        </p>
+        <div id="myCandidates" class="bg-slate-950 border border-slate-800 rounded-lg p-3 max-h-80 overflow-auto text-xs">
+          <p class="text-slate-500">Yükleniyor...</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const form = document.getElementById('candidateForm');
+    const resultDiv = document.getElementById('result');
+    const myCandidatesDiv = document.getElementById('myCandidates');
+    const photoInput = document.getElementById('photo');
+    const logoutBtn = document.getElementById('logoutBtn');
+
+    const token = localStorage.getItem('token');
+    const role = localStorage.getItem('role');
+
+    if (!token || role !== 'candidate') {
+      alert('Bu sayfayı kullanmak için önce aday olarak KADİS\'e giriş yapmalısınız.');
+      window.location.href = '/login.html';
+    }
+
+    function logout() {
+      localStorage.removeItem('token');
+      localStorage.removeItem('role');
+      window.location.href = '/login.html';
+    }
+
+    logoutBtn.addEventListener('click', logout);
+
+    async function loadMyCandidates() {
+      try {
+        const res = await fetch('/api/my-candidates', {
+          headers: {
+            'Authorization': 'Bearer ' + token
+          }
+        });
+
+        if (!res.ok) {
+          myCandidatesDiv.innerHTML = '<p class="text-red-400">Kayıtlar yüklenemedi.</p>';
+          return;
+        }
+
+        const list = await res.json();
+
+        if (!list.length) {
+          myCandidatesDiv.innerHTML = '<p class="text-slate-500">Henüz oluşturduğunuz bir aktif KADİS kaydı yok.</p>';
+          return;
+        }
+
+        const rows = list.map(item => {
+          const expText = item.expiresAt
+            ? new Date(item.expiresAt).toLocaleString()
+            : '-';
+          return `
+          <tr class="border-b border-slate-800 last:border-b-0">
+            <td class="py-1 px-1 font-mono text-[11px]">${item.code}</td>
+            <td class="py-1 px-1">${item.fullName}</td>
+            <td class="py-1 px-1">${item.position || '-'}</td>
+            <td class="py-1 px-1 text-[11px]">${expText}</td>
+          </tr>`;
+        }).join('');
+
+        myCandidatesDiv.innerHTML = `
+          <table class="w-full text-[11px]">
+            <thead>
+              <tr class="border-b border-slate-800">
+                <th class="text-left py-1 px-1">KADİS Kodu</th>
+                <th class="text-left py-1 px-1">Ad Soyad</th>
+                <th class="text-left py-1 px-1">Pozisyon</th>
+                <th class="text-left py-1 px-1">Geçerlilik Bitişi</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${rows}
+            </tbody>
+          </table>
+        `;
+      } catch (err) {
+        console.error(err);
+        myCandidatesDiv.innerHTML = '<p class="text-red-400">Sunucu hatası.</p>';
+      }
+    }
+
+    loadMyCandidates();
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const formData = new FormData();
+      formData.append('fullName', document.getElementById('fullName').value);
+      formData.append('email', document.getElementById('email').value);
+      formData.append('nationalId', document.getElementById('nationalId').value);
+      formData.append('totalPrimDays', document.getElementById('totalPrimDays').value);
+      formData.append('lastCompany', document.getElementById('lastCompany').value);
+      formData.append('position', document.getElementById('position').value);
+      formData.append('experience', document.getElementById('experience').value);
+
+      if (photoInput.files && photoInput.files[0]) {
+        formData.append('photo', photoInput.files[0]);
+      }
+
+      try {
+        const res = await fetch('/api/candidates', {
+          method: 'POST',
+          headers: {
+            'Authorization': 'Bearer ' + token
+          },
+          body: formData
+        });
+
+        const data = await res.json();
+
+        if (res.ok) {
+          const verifyUrl = window.location.origin + '/employer.html?code=' + encodeURIComponent(data.code);
+          const expText = data.expiresAt
+            ? new Date(data.expiresAt).toLocaleString()
+            : '7 gün';
+
+          // Sonuç alanı: kod + link + QR alanı + geçerlilik
+          resultDiv.innerHTML = `
+            <div class="bg-slate-950 border border-slate-800 rounded-xl px-3 py-3 mt-2 text-xs text-left">
+              <div class="font-semibold text-emerald-300 mb-1">KADİS Doğrulama Kodunuz:</div>
+              <div class="text-lg font-bold text-emerald-400 mb-1 text-center">${data.code}</div>
+
+              <div class="mb-2 text-center text-[11px] text-slate-300">
+                Bu kod <span class="font-semibold">7 gün</span> boyunca geçerlidir.<br/>
+                <span class="font-semibold">Geçerlilik bitişi:</span> ${expText}
+              </div>
+
+              <div class="mb-2">
+                <div class="text-slate-300 mb-1">İşverenler için doğrulama linki:</div>
+                <a href="${verifyUrl}" class="text-blue-400 break-all" target="_blank">
+                  ${verifyUrl}
+                </a>
+              </div>
+              <div class="mt-2 flex flex-col items-center gap-1">
+                <span class="text-slate-300 mb-1 text-center">
+                  İşveren, bu QR kodu okutarak doğrudan KADİS doğrulama ekranına gidebilir.
+                </span>
+                <canvas id="kadisQr" class="bg-white rounded-md p-1"></canvas>
+              </div>
+              <p class="mt-2 text-[11px] text-slate-400 text-center">
+                Not: Yeni bir KADİS kaydı oluşturduğunuzda bu kod dışındaki önceki kodlarınız otomatik olarak geçersiz olur.
+              </p>
+            </div>
+          `;
+
+          // QR oluştur
+          const qrCanvas = document.getElementById('kadisQr');
+          if (qrCanvas && window.QRious) {
+            new QRious({
+              element: qrCanvas,
+              value: verifyUrl,
+              size: 160
+            });
+          }
+
+          form.reset();
+          loadMyCandidates();
+        } else {
+          resultDiv.textContent = 'Hata: ' + (data.message || 'Bir sorun oluştu.');
+        }
+      } catch (err) {
+        console.error(err);
+        resultDiv.textContent = 'Sunucuya bağlanırken hata oluştu.';
+      }
+    });
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,116 @@
+{
+  "992226": {
+    "fullName": "emre balkan",
+    "email": "e.balkanofficial@gmail.com",
+    "position": "mağaza müdürü",
+    "experience": "deneme1",
+    "createdAt": "2025-11-22T17:28:37.881Z"
+  },
+  "3BDD17": {
+    "fullName": "emre balkan",
+    "email": "e.balkanofficial@gmail.com",
+    "position": "mağaza müdürü",
+    "experience": "deneme2",
+    "createdAt": "2025-11-22T17:39:57.699Z"
+  },
+  "20E36E": {
+    "fullName": "suna vezr",
+    "email": "sunavezir@gmail.com",
+    "position": "müdür",
+    "experience": "duna güzellik",
+    "createdAt": "2025-11-22T17:40:56.981Z"
+  },
+  "E87138": {
+    "fullName": "emre balkan",
+    "email": "e.balkanofficial@gmail.com",
+    "nationalId": "28456959154",
+    "totalPrimDays": "2560",
+    "lastCompany": "mavi jeans",
+    "position": "mağaza müdürü",
+    "experience": "mavi jeans,bg store",
+    "createdAt": "2025-11-22T18:17:53.679Z",
+    "ownerEmail": "deneme@example.com",
+    "isArchived": true,
+    "archivedAt": "2025-11-23T14:24:20.135Z"
+  },
+  "CCD85E": {
+    "fullName": "Emre BALKAN",
+    "email": "e.balkanofficial@gmail.com",
+    "nationalId": "28456959154",
+    "totalPrimDays": "2600",
+    "lastCompany": "mavi jeans",
+    "position": "mağaza müdürü",
+    "experience": "deneme1",
+    "createdAt": "2025-11-22T18:29:41.294Z",
+    "ownerEmail": "deneme1@example.com"
+  },
+  "5EAE31": {
+    "fullName": "Emre BALKAN",
+    "email": "e.balkanofficial@gmail.com",
+    "nationalId": "28456959154",
+    "totalPrimDays": "123123",
+    "lastCompany": "mavi jeans",
+    "position": "mağaza müdürü",
+    "experience": "kyfkhvjk",
+    "photoFilename": "1763837193374-21ff34.jpg",
+    "createdAt": "2025-11-22T18:46:33.377Z",
+    "ownerEmail": "deneme@example.com",
+    "isArchived": true,
+    "archivedAt": "2025-11-23T14:24:20.135Z"
+  },
+  "2C241C": {
+    "fullName": "Emre BALKAN",
+    "email": "e.balkanofficial@gmail.com",
+    "nationalId": "28456959154",
+    "totalPrimDays": "2650",
+    "lastCompany": "mavi jeans",
+    "position": "mağaza müdürü",
+    "experience": "mmavi jeans",
+    "photoFilename": "1763894281136-251cb3.jpg",
+    "createdAt": "2025-11-23T10:38:01.141Z",
+    "ownerEmail": "kod1@gmail.com",
+    "isArchived": true,
+    "archivedAt": "2025-11-23T11:39:56.715Z"
+  },
+  "300B82": {
+    "fullName": "Emre BALKAN",
+    "email": "e.balkanofficial@gmail.com",
+    "nationalId": "28456959154",
+    "totalPrimDays": "2650",
+    "lastCompany": "",
+    "position": "mağaza müdürü",
+    "experience": "mavi jeans",
+    "photoFilename": "1763897377657-7658cb.jpg",
+    "createdAt": "2025-11-23T11:29:37.659Z",
+    "ownerEmail": "kod1@gmail.com",
+    "isArchived": true,
+    "archivedAt": "2025-11-23T11:39:56.715Z"
+  },
+  "0ECCC3": {
+    "fullName": "Emre BALKAN",
+    "email": "e.balkanofficial@gmail.com",
+    "nationalId": "28456959154",
+    "totalPrimDays": "341",
+    "lastCompany": "mavi jeans",
+    "position": "mağaza müdürü",
+    "experience": "wfdasfasf",
+    "photoFilename": "1763897996713-8f671e.jpg",
+    "createdAt": "2025-11-23T11:39:56.715Z",
+    "ownerEmail": "kod1@gmail.com",
+    "isArchived": false
+  },
+  "99F5A7": {
+    "fullName": "Emre BALKAN",
+    "email": "e.balkanofficial@gmail.com",
+    "nationalId": "28456959154",
+    "totalPrimDays": "26544",
+    "lastCompany": "mavi jeans",
+    "position": "mağaza müdürü",
+    "experience": "mavi",
+    "photoFilename": "1763907860133-08e841.jpg",
+    "createdAt": "2025-11-23T14:24:20.135Z",
+    "expiresAt": "2025-11-30T14:24:20.135Z",
+    "ownerEmail": "deneme@example.com",
+    "isArchived": false
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "deneme@example.com": {
+    "email": "deneme@example.com",
+    "passwordHash": "$2b$10$2qldfguL7rcoZIAUX1I4XO6G3niSGyrEBowvKMuluXJhMpSik0KTW",
+    "role": "candidate",
+    "createdAt": "2025-11-22T17:49:06.305Z"
+  },
+  "deneme@eexample.com": {
+    "email": "deneme@eexample.com",
+    "passwordHash": "$2b$10$TvDb6zJGIGC52Nx9AXI5/e7DW7R0Xk15Q2lQnW2Abtj2uBtsfY6EO",
+    "role": "employer",
+    "createdAt": "2025-11-22T18:16:40.265Z"
+  },
+  "deneme1@example.com": {
+    "email": "deneme1@example.com",
+    "passwordHash": "$2b$10$KVGWa37Y1Lok/SyS7LIBGu.qf8LkTXf06rhBxIz8B4hvo9Mc7Fse.",
+    "role": "candidate",
+    "createdAt": "2025-11-22T18:28:28.001Z"
+  },
+  "kod1@gmail.com": {
+    "email": "kod1@gmail.com",
+    "passwordHash": "$2b$10$sPRl.qU3tmk2Eb43gEyCQetzqSpXsgjWIMRfTVRyCXAO55JvBHcVC",
+    "role": "candidate",
+    "createdAt": "2025-11-23T10:36:16.637Z"
+  },
+  "e.balkanofficial@gmail.com": {
+    "email": "e.balkanofficial@gmail.com",
+    "passwordHash": "$2b$10$./k/IBYOBxMARfZjCYlTAObZJngqDU0kRnDDNuuG5sM6l4QB2.Oeu",
+    "role": "admin",
+    "createdAt": "2025-11-23T11:51:12.274Z"
+  },
+  "admin@kadis.local": {
+    "email": "admin@kadis.local",
+    "passwordHash": "$2b$10$xh6umXzVfK2uLK.Z2.JiJeJ53VfScH63afn7UhuDktF2rzPJ1Z0sm",
+    "role": "admin",
+    "createdAt": "2025-11-23T14:23:31.898Z",
+    "note": "Her açılışta güncellenen varsayılan admin hesabı"
+  },
+  "ik2@gmail.com": {
+    "email": "ik2@gmail.com",
+    "passwordHash": "$2b$10$NenPnzN.ebib9KEYV7gRuuw1SJaC624elVy/fSUetjhw3b087MJx2",
+    "role": "employer",
+    "createdAt": "2025-11-23T14:13:01.195Z"
+  }
+}
