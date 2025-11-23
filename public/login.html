@@ -4,155 +4,226 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>KADİS – Giriş / Kayıt</title>
-
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-slate-950 min-h-screen flex items-center justify-center">
-
-  <div class="bg-slate-900 border border-slate-800 shadow-xl rounded-2xl p-8 w-full max-w-md text-slate-50">
-    <!-- Logo + Başlık -->
-    <div class="flex items-center gap-3 mb-6">
-      <div class="w-9 h-9 rounded-lg bg-blue-500 flex items-center justify-center font-extrabold text-slate-50">
-        K
-      </div>
-      <div>
-        <div class="font-semibold tracking-tight text-sm">KADİS</div>
-        <div class="text-[11px] text-slate-400">
-          Kariyer Doğrulama ve İş Sicil Sistemi
+  <div class="w-full max-w-4xl bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl p-6 md:p-8 text-slate-50">
+    <!-- Üst başlık -->
+    <div class="flex items-center justify-between mb-6 gap-4">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-blue-500 flex items-center justify-center font-extrabold text-slate-50">
+          K
+        </div>
+        <div>
+          <div class="text-sm font-semibold tracking-tight">KADİS</div>
+          <div class="text-[11px] text-slate-400">
+            Kariyer Doğrulama ve İş Sicil Sistemi
+          </div>
         </div>
       </div>
+
+      <a href="/"
+         class="text-xs border border-slate-600 hover:border-slate-400 px-4 py-2 rounded-lg font-semibold">
+        Ana Sayfa
+      </a>
     </div>
 
     <!-- Sekmeler -->
-    <div class="flex text-sm mb-4 border-b border-slate-800">
-      <button id="loginTab"
-              class="flex-1 py-2 border-b-2 border-blue-500 font-semibold">
+    <div class="mb-6 flex gap-2 border-b border-slate-800">
+      <button id="tabLogin"
+              class="px-4 py-2 text-xs font-semibold border-b-2 border-blue-500 text-blue-400">
         Giriş Yap
       </button>
-      <button id="registerTab"
-              class="flex-1 py-2 border-b-2 border-transparent text-slate-400 hover:text-slate-200">
+      <button id="tabRegister"
+              class="px-4 py-2 text-xs font-semibold text-slate-400 hover:text-slate-200 border-b-2 border-transparent">
         Kayıt Ol
       </button>
     </div>
 
-    <!-- Giriş Formu -->
-    <form id="loginForm" class="space-y-4 text-sm">
-      <div>
-        <label class="block mb-1 text-slate-300">E-posta</label>
-        <input id="loginEmail" type="email"
-               class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm"
-               required />
-      </div>
-      <div>
-        <label class="block mb-1 text-slate-300">Şifre</label>
-        <input id="loginPassword" type="password"
-               class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm"
-               required />
-      </div>
-      <button type="submit"
-              class="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 rounded-lg">
-        Giriş Yap
-      </button>
-      <p class="mt-2 text-[11px] text-slate-500">
-        Admin girişi için: <span class="font-mono">admin@kadis.local</span> / <span class="font-mono">Kadis!123</span>
-      </p>
-    </form>
+    <div class="grid md:grid-cols-2 gap-6">
+      <!-- Giriş formu -->
+      <div id="loginPanel">
+        <h2 class="text-lg font-semibold mb-3">Hesabınıza giriş yapın</h2>
+        <p class="text-xs text-slate-400 mb-4">
+          Aday, işveren veya yönetici olarak sisteme giriş yapabilirsiniz.
+        </p>
 
-    <!-- Kayıt Formu (artık sadece Aday & İşveren) -->
-    <form id="registerForm" class="space-y-4 text-sm hidden mt-1">
-      <div>
-        <label class="block mb-1 text-slate-300">E-posta</label>
-        <input id="registerEmail" type="email"
-               class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm"
-               required />
-      </div>
-      <div>
-        <label class="block mb-1 text-slate-300">Şifre</label>
-        <input id="registerPassword" type="password"
-               class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm"
-               required />
-      </div>
+        <form id="loginForm" class="space-y-3 text-sm">
+          <div>
+            <label class="block text-xs mb-1" for="loginEmail">E-posta</label>
+            <input id="loginEmail" type="email" required
+                   class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-blue-500">
+          </div>
 
-      <div>
-        <span class="block mb-1 text-slate-300">Kayıt Tipi</span>
-        <div class="flex flex-col gap-1 text-xs text-slate-300">
-          <label class="inline-flex items-center gap-1">
-            <input type="radio" name="role" value="candidate" checked />
-            Aday
-          </label>
-          <label class="inline-flex items-center gap-1">
-            <input type="radio" name="role" value="employer" />
-            İşveren
-          </label>
-        </div>
+          <div>
+            <label class="block text-xs mb-1" for="loginPassword">Şifre</label>
+            <input id="loginPassword" type="password" required
+                   class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-blue-500">
+          </div>
+
+          <div>
+            <label class="block text-xs mb-1" for="loginRole">Rol</label>
+            <select id="loginRole" required
+                    class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-blue-500">
+              <option value="candidate">Aday</option>
+              <option value="employer">İşveren</option>
+              <option value="admin">Yönetici</option>
+            </select>
+          </div>
+
+          <p class="text-[11px] text-slate-500">
+            Yönetici girişi yalnızca yetkili kullanıcılar içindir.
+          </p>
+
+          <div id="loginError" class="text-xs text-red-400 hidden"></div>
+
+          <button type="submit"
+                  class="w-full bg-blue-500 hover:bg-blue-600 text-xs font-semibold py-2 rounded-lg mt-2">
+            Giriş Yap
+          </button>
+        </form>
       </div>
 
-      <button type="submit"
-              class="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-semibold py-2 rounded-lg">
-        KADİS'e Kayıt Ol
-      </button>
-    </form>
+      <!-- Kayıt formu -->
+      <div id="registerPanel" class="hidden">
+        <h2 class="text-lg font-semibold mb-3">Yeni hesap oluşturun</h2>
+        <p class="text-xs text-slate-400 mb-4">
+          Aday veya işveren olarak KADİS hesabı açabilirsiniz.
+        </p>
 
-    <div id="message" class="mt-4 text-xs text-center text-slate-300"></div>
+        <form id="registerForm" class="space-y-3 text-sm">
+          <div>
+            <label class="block text-xs mb-1" for="registerEmail">E-posta</label>
+            <input id="registerEmail" type="email" required
+                   class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-blue-500">
+          </div>
+
+          <div>
+            <label class="block text-xs mb-1" for="registerPassword">Şifre</label>
+            <input id="registerPassword" type="password" required
+                   class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-blue-500">
+          </div>
+
+          <div>
+            <label class="block text-xs mb-1" for="registerRole">Rol</label>
+            <select id="registerRole" required
+                    class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-blue-500">
+              <option value="candidate">Aday</option>
+              <option value="employer">İşveren</option>
+            </select>
+          </div>
+
+          <div id="registerError" class="text-xs text-red-400 hidden"></div>
+          <div id="registerSuccess" class="text-xs text-emerald-400 hidden"></div>
+
+          <button type="submit"
+                  class="w-full bg-emerald-500 hover:bg-emerald-600 text-xs font-semibold py-2 rounded-lg mt-2">
+            Kayıt Ol
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <p class="mt-6 text-[11px] text-slate-500 text-center">
+      Bu sistem şu an demo amaçlıdır; gerçek SGK/e-Devlet verileriyle entegre değildir.
+    </p>
   </div>
 
   <script>
-    const loginTab = document.getElementById('loginTab');
-    const registerTab = document.getElementById('registerTab');
-    const loginForm = document.getElementById('loginForm');
-    const registerForm = document.getElementById('registerForm');
-    const messageDiv = document.getElementById('message');
+    // Sekme geçişleri
+    const tabLogin = document.getElementById('tabLogin');
+    const tabRegister = document.getElementById('tabRegister');
+    const loginPanel = document.getElementById('loginPanel');
+    const registerPanel = document.getElementById('registerPanel');
 
-    // Sekme geçişi
-    loginTab.addEventListener('click', () => {
-      loginTab.classList.add('border-blue-500', 'font-semibold');
-      loginTab.classList.remove('text-slate-400');
-      registerTab.classList.remove('border-blue-500', 'font-semibold');
-      registerTab.classList.add('text-slate-400');
-
-      loginForm.classList.remove('hidden');
-      registerForm.classList.add('hidden');
-      messageDiv.textContent = '';
+    tabLogin.addEventListener('click', () => {
+      tabLogin.classList.add('border-blue-500', 'text-blue-400');
+      tabLogin.classList.remove('text-slate-400');
+      tabRegister.classList.remove('border-blue-500', 'text-blue-400');
+      tabRegister.classList.add('text-slate-400');
+      loginPanel.classList.remove('hidden');
+      registerPanel.classList.add('hidden');
     });
 
-    registerTab.addEventListener('click', () => {
-      registerTab.classList.add('border-blue-500', 'font-semibold');
-      registerTab.classList.remove('text-slate-400');
-      loginTab.classList.remove('border-blue-500', 'font-semibold');
-      loginTab.classList.add('text-slate-400');
-
-      registerForm.classList.remove('hidden');
-      loginForm.classList.add('hidden');
-      messageDiv.textContent = '';
+    tabRegister.addEventListener('click', () => {
+      tabRegister.classList.add('border-blue-500', 'text-blue-400');
+      tabRegister.classList.remove('text-slate-400');
+      tabLogin.classList.remove('border-blue-500', 'text-blue-400');
+      tabLogin.classList.add('text-slate-400');
+      registerPanel.classList.remove('hidden');
+      loginPanel.classList.add('hidden');
     });
 
-    // Giriş formu
-    loginForm.addEventListener('submit', async (e) => {
+    // Yardımcı: base URL (Render + localhost uyumlu)
+    const baseUrl = window.location.origin;
+
+    // Kayıt
+    document.getElementById('registerForm').addEventListener('submit', async (e) => {
       e.preventDefault();
-      messageDiv.textContent = 'Giriş yapılıyor...';
+      const email = document.getElementById('registerEmail').value.trim();
+      const password = document.getElementById('registerPassword').value;
+      const role = document.getElementById('registerRole').value;
 
-      const email = document.getElementById('loginEmail').value.trim();
-      const password = document.getElementById('loginPassword').value;
+      const errorEl = document.getElementById('registerError');
+      const successEl = document.getElementById('registerSuccess');
+      errorEl.classList.add('hidden');
+      successEl.classList.add('hidden');
 
       try {
-        const res = await fetch('/api/auth/login', {
+        const res = await fetch(`${baseUrl}/api/register`, {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ email, password })
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password, role })
         });
 
         const data = await res.json();
 
         if (!res.ok) {
-          messageDiv.textContent = data.message || 'Giriş başarısız.';
+          errorEl.textContent = data.message || 'Kayıt başarısız.';
+          errorEl.classList.remove('hidden');
           return;
         }
 
+        successEl.textContent = 'Kayıt başarılı. Artık giriş yapabilirsiniz.';
+        successEl.classList.remove('hidden');
+        (document.getElementById('registerForm')).reset();
+      } catch (err) {
+        errorEl.textContent = 'Sunucuya erişilemedi. Lütfen daha sonra tekrar deneyin.';
+        errorEl.classList.remove('hidden');
+      }
+    });
+
+    // Giriş
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('loginEmail').value.trim();
+      const password = document.getElementById('loginPassword').value;
+      const role = document.getElementById('loginRole').value;
+
+      const errorEl = document.getElementById('loginError');
+      errorEl.classList.add('hidden');
+
+      try {
+        const res = await fetch(`${baseUrl}/api/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password, role })
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          errorEl.textContent = data.message || 'Giriş başarısız.';
+          errorEl.classList.remove('hidden');
+          return;
+        }
+
+        // Token & rol kaydet
         localStorage.setItem('token', data.token);
         localStorage.setItem('role', data.role);
+        localStorage.setItem('email', data.email);
 
+        // Yönlendirme
         if (data.role === 'candidate') {
           window.location.href = '/index.html';
         } else if (data.role === 'employer') {
@@ -160,43 +231,11 @@
         } else if (data.role === 'admin') {
           window.location.href = '/admin.html';
         } else {
-          messageDiv.textContent = 'Bilinmeyen rol: ' + data.role;
+          window.location.href = '/';
         }
       } catch (err) {
-        console.error(err);
-        messageDiv.textContent = 'Sunucuya bağlanırken hata oluştu.';
-      }
-    });
-
-    // Kayıt formu
-    registerForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      messageDiv.textContent = 'Kayıt oluşturuluyor...';
-
-      const email = document.getElementById('registerEmail').value.trim();
-      const password = document.getElementById('registerPassword').value;
-      const role = document.querySelector('input[name="role"]:checked').value;
-
-      try {
-        const res = await fetch('/api/auth/register', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ email, password, role })
-        });
-
-        const data = await res.json();
-
-        if (!res.ok) {
-          messageDiv.textContent = data.message || 'Kayıt sırasında hata oluştu.';
-          return;
-        }
-
-        messageDiv.textContent = 'Kayıt başarılı. Şimdi Giriş Yap sekmesine geçebilirsiniz.';
-      } catch (err) {
-        console.error(err);
-        messageDiv.textContent = 'Sunucuya bağlanırken hata oluştu.';
+        errorEl.textContent = 'Sunucuya erişilemedi. Lütfen daha sonra tekrar deneyin.';
+        errorEl.classList.remove('hidden');
       }
     });
   </script>
