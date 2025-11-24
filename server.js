@@ -126,8 +126,8 @@ loadQueries();
   const passwordHash = bcrypt.hashSync(password, 10);
 
   // admin@kadis.local hesabını her seferinde bu bilinen bilgilerle güncelliyoruz
-  users[email] = {
-    email,
+  users[email.toLowerCase()] = {
+    email: email.toLowerCase(),
     passwordHash,
     role: 'admin',
     createdAt: new Date().toISOString(),
@@ -192,8 +192,12 @@ function getExpiryDateISO() {
   return expires.toISOString();
 }
 
-// ---- AUTH: Kayıt ----
-app.post('/api/auth/register', (req, res) => {
+// ========================
+// AUTH HANDLER FONKSİYONLARI
+// ========================
+
+// Kayıt handler
+function registerHandler(req, res) {
   const { email, password, role } = req.body;
 
   if (!email || !password || !role) {
@@ -227,10 +231,10 @@ app.post('/api/auth/register', (req, res) => {
   saveUsers();
 
   return res.json({ message: 'Kullanıcı başarıyla oluşturuldu.' });
-});
+}
 
-// ---- AUTH: Login ----
-app.post('/api/auth/login', (req, res) => {
+// Login handler
+function loginHandler(req, res) {
   const { email, password } = req.body;
 
   if (!email || !password) {
@@ -260,7 +264,15 @@ app.post('/api/auth/login', (req, res) => {
     token,
     role: user.role
   });
-});
+}
+
+// ---- AUTH: Eski yollar (/api/auth/...) ----
+app.post('/api/auth/register', registerHandler);
+app.post('/api/auth/login', loginHandler);
+
+// ---- AUTH: Yeni yollar (/api/...) – FRONTEND BUNLARI KULLANIYOR ----
+app.post('/api/register', registerHandler);
+app.post('/api/login', loginHandler);
 
 // ---- Profil endpoint'i ----
 app.get('/api/profile', authMiddleware, (req, res) => {
