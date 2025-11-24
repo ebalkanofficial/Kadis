@@ -135,17 +135,19 @@
     const photoInput = document.getElementById('photo');
     const logoutBtn = document.getElementById('logoutBtn');
 
-    const token = localStorage.getItem('token');
-    const role = localStorage.getItem('role');
+    // 🔑 Yeni anahtar isimleri
+    const token = localStorage.getItem('kadis_token');
+    const role = localStorage.getItem('kadis_role');
 
+    // Aday değilse veya token yoksa login sayfasına gönder
     if (!token || role !== 'candidate') {
       alert('Bu sayfayı kullanmak için önce aday olarak KADİS\'e giriş yapmalısınız.');
       window.location.href = '/login.html';
     }
 
     function logout() {
-      localStorage.removeItem('token');
-      localStorage.removeItem('role');
+      localStorage.removeItem('kadis_token');
+      localStorage.removeItem('kadis_role');
       window.location.href = '/login.html';
     }
 

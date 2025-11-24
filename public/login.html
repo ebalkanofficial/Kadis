@@ -101,10 +101,8 @@
   </div>
 
   <script>
-    // 🔥 ÖNEMLİ: API adresini burada sabitliyoruz
-    const API_BASE = window.location.hostname.includes('localhost')
-      ? 'http://localhost:3000'
-      : 'https://kadis.onrender.com';
+    // Render + kendi domainin için otomatik taban adres
+    const API_BASE = window.location.origin; // örn: https://kadis.tr veya https://kadis.onrender.com
 
     const tabLogin = document.getElementById('tab-login');
     const tabRegister = document.getElementById('tab-register');
@@ -144,7 +142,7 @@
       const role = document.getElementById('loginRole').value;
 
       try {
-        const res = await fetch(`${API_BASE}/api/login`, {
+        const res = await fetch(`${API_BASE}/api/auth/login`, {   // <<< BURASI DÜZELDİ
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email, password, role })
@@ -157,11 +155,9 @@
 
         const data = await res.json();
 
-        // Token ve rolü sakla
         localStorage.setItem('kadis_token', data.token);
         localStorage.setItem('kadis_role', data.role);
 
-        // Role göre yönlendirme
         if (data.role === 'candidate') {
           window.location.href = '/index.html';
         } else if (data.role === 'employer') {
@@ -179,39 +175,44 @@
     });
 
     // Kayıt
-    registerForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      registerMsg.classList.add('hidden');
+registerForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  registerMsg.classList.add('hidden');
 
-      const email = document.getElementById('registerEmail').value.trim();
-      const password = document.getElementById('registerPassword').value;
-      const role = document.getElementById('registerRole').value;
+  const email = document.getElementById('registerEmail').value.trim();
+  const password = document.getElementById('registerPassword').value;
+  const role = document.getElementById('registerRole').value;
 
-      try {
-        const res = await fetch(`${API_BASE}/api/register`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, password, role })
-        });
-
-        if (!res.ok) {
-          const text = await res.text();
-          throw new Error(text || 'Kayıt başarısız.');
-        }
-
-        registerMsg.textContent = 'Kayıt başarılı. Giriş yapabilirsiniz.';
-        registerMsg.classList.remove('hidden');
-        registerMsg.classList.remove('text-red-400');
-        registerMsg.classList.add('text-emerald-400');
-      } catch (err) {
-        console.error(err);
-        registerMsg.textContent = 'Sunucuya erişilemedi veya kayıt başarısız. Lütfen tekrar deneyin.';
-        registerMsg.classList.remove('hidden');
-        registerMsg.classList.remove('text-emerald-400');
-        registerMsg.classList.add('text-red-400');
-      }
+  try {
+    const res = await fetch(`${API_BASE}/api/auth/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password, role })
     });
-  </script>
 
-</body>
-</html>
+    if (!res.ok) {
+      // JSON mesajını okumayı dene
+      let msg = 'Kayıt başarısız.';
+      try {
+        const data = await res.json();
+        if (data && data.message) msg = data.message;
+      } catch (_) {
+        // JSON değilse text olarak al
+        const text = await res.text();
+        if (text) msg = text;
+      }
+      throw new Error(msg);
+    }
+
+    registerMsg.textContent = 'Kayıt başarılı. Giriş yapabilirsiniz.';
+    registerMsg.classList.remove('hidden');
+    registerMsg.classList.remove('text-red-400');
+    registerMsg.classList.add('text-emerald-400');
+  } catch (err) {
+    console.error(err);
+    registerMsg.textContent = err.message || 'Sunucuya erişilemedi veya kayıt başarısız. Lütfen tekrar deneyin.';
+    registerMsg.classList.remove('hidden');
+    registerMsg.classList.remove('text-emerald-400');
+    registerMsg.classList.add('text-red-400');
+  }
+});
