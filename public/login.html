@@ -101,8 +101,8 @@
   </div>
 
   <script>
-    // Render + kendi domainin için otomatik taban adres
-    const API_BASE = window.location.origin; // örn: https://kadis.tr veya https://kadis.onrender.com
+    // API tabanı (kadis.tr veya render domaini)
+    const API_BASE = window.location.origin;
 
     const tabLogin = document.getElementById('tab-login');
     const tabRegister = document.getElementById('tab-register');
@@ -132,6 +132,10 @@
       registerMsg.classList.add('hidden');
     });
 
+    // 🔑 LocalStorage anahtar isimleri
+    const TOKEN_KEY = 'kadis_token';
+    const ROLE_KEY = 'kadis_role';
+
     // Giriş
     loginForm.addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -142,22 +146,31 @@
       const role = document.getElementById('loginRole').value;
 
       try {
-        const res = await fetch(`${API_BASE}/api/auth/login`, {   // <<< BURASI DÜZELDİ
+        const res = await fetch(`${API_BASE}/api/auth/login`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email, password, role })
         });
 
         if (!res.ok) {
-          const text = await res.text();
-          throw new Error(text || 'Giriş başarısız.');
+          let msg = 'Giriş başarısız.';
+          try {
+            const data = await res.json();
+            if (data && data.message) msg = data.message;
+          } catch (_) {
+            const text = await res.text();
+            if (text) msg = text;
+          }
+          throw new Error(msg);
         }
 
         const data = await res.json();
 
-        localStorage.setItem('kadis_token', data.token);
-        localStorage.setItem('kadis_role', data.role);
+        // Token ve rolü sakla
+        localStorage.setItem(TOKEN_KEY, data.token);
+        localStorage.setItem(ROLE_KEY, data.role);
 
+        // Role göre yönlendirme
         if (data.role === 'candidate') {
           window.location.href = '/index.html';
         } else if (data.role === 'employer') {
@@ -168,51 +181,53 @@
           window.location.href = '/';
         }
       } catch (err) {
-        console.error(err);
-        loginMsg.textContent = 'Sunucuya erişilemedi veya giriş başarısız. Lütfen bilgilerinizi kontrol edip tekrar deneyin.';
+        console.error('Login error:', err);
+        loginMsg.textContent = err.message || 'Sunucuya erişilemedi veya giriş başarısız. Lütfen bilgilerinizi kontrol edip tekrar deneyin.';
         loginMsg.classList.remove('hidden');
       }
     });
 
     // Kayıt
-registerForm.addEventListener('submit', async (e) => {
-  e.preventDefault();
-  registerMsg.classList.add('hidden');
+    registerForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      registerMsg.classList.add('hidden');
 
-  const email = document.getElementById('registerEmail').value.trim();
-  const password = document.getElementById('registerPassword').value;
-  const role = document.getElementById('registerRole').value;
+      const email = document.getElementById('registerEmail').value.trim();
+      const password = document.getElementById('registerPassword').value;
+      const role = document.getElementById('registerRole').value;
 
-  try {
-    const res = await fetch(`${API_BASE}/api/auth/register`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password, role })
-    });
-
-    if (!res.ok) {
-      // JSON mesajını okumayı dene
-      let msg = 'Kayıt başarısız.';
       try {
-        const data = await res.json();
-        if (data && data.message) msg = data.message;
-      } catch (_) {
-        // JSON değilse text olarak al
-        const text = await res.text();
-        if (text) msg = text;
-      }
-      throw new Error(msg);
-    }
+        const res = await fetch(`${API_BASE}/api/auth/register`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password, role })
+        });
 
-    registerMsg.textContent = 'Kayıt başarılı. Giriş yapabilirsiniz.';
-    registerMsg.classList.remove('hidden');
-    registerMsg.classList.remove('text-red-400');
-    registerMsg.classList.add('text-emerald-400');
-  } catch (err) {
-    console.error(err);
-    registerMsg.textContent = err.message || 'Sunucuya erişilemedi veya kayıt başarısız. Lütfen tekrar deneyin.';
-    registerMsg.classList.remove('hidden');
-    registerMsg.classList.remove('text-emerald-400');
-    registerMsg.classList.add('text-red-400');
-  }
-});
+        if (!res.ok) {
+          let msg = 'Kayıt başarısız.';
+          try {
+            const data = await res.json();
+            if (data && data.message) msg = data.message;
+          } catch (_) {
+            const text = await res.text();
+            if (text) msg = text;
+          }
+          throw new Error(msg);
+        }
+
+        registerMsg.textContent = 'Kayıt başarılı. Giriş yapabilirsiniz.';
+        registerMsg.classList.remove('hidden');
+        registerMsg.classList.remove('text-red-400');
+        registerMsg.classList.add('text-emerald-400');
+      } catch (err) {
+        console.error('Register error:', err);
+        registerMsg.textContent = err.message || 'Sunucuya erişilemedi veya kayıt başarısız. Lütfen tekrar deneyin.';
+        registerMsg.classList.remove('hidden');
+        registerMsg.classList.remove('text-emerald-400');
+        registerMsg.classList.add('text-red-400');
+      }
+    });
+  </script>
+
+</body>
+</html>
