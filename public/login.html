@@ -49,12 +49,15 @@
       </div>
 
       <div>
-        <label class="block text-xs mb-1">Rol</label>
+        <label class="block text-xs mb-1">Rolünüz</label>
         <select id="loginRole" class="w-full px-3 py-2 rounded-lg bg-slate-800 border border-slate-700 text-sm">
           <option value="candidate">Aday</option>
           <option value="employer">İşveren</option>
           <option value="admin">Admin</option>
         </select>
+        <p class="text-[11px] text-slate-400 mt-1">
+          Burada seçtiğiniz rol, kayıtlı olduğunuz rol ile <span class="font-semibold">aynı olmalıdır</span>.
+        </p>
       </div>
 
       <button type="submit"
@@ -85,6 +88,9 @@
           <option value="candidate">Aday</option>
           <option value="employer">İşveren</option>
         </select>
+        <p class="text-[11px] text-slate-400 mt-1">
+          Admin rolü sadece sistem yöneticisi için ayrılmıştır.
+        </p>
       </div>
 
       <button type="submit"
@@ -101,8 +107,7 @@
   </div>
 
   <script>
-    // API tabanı (kadis.tr veya render domaini)
-    const API_BASE = window.location.origin;
+    const API_BASE = window.location.origin; // Örn: https://kadis.tr veya http://localhost:3000
 
     const tabLogin = document.getElementById('tab-login');
     const tabRegister = document.getElementById('tab-register');
@@ -110,6 +115,12 @@
     const registerForm = document.getElementById('register-form');
     const loginMsg = document.getElementById('loginMessage');
     const registerMsg = document.getElementById('registerMessage');
+
+    const roleLabels = {
+      candidate: 'Aday',
+      employer: 'İşveren',
+      admin: 'Admin'
+    };
 
     // Sekme geçişleri
     tabLogin.addEventListener('click', () => {
@@ -132,10 +143,6 @@
       registerMsg.classList.add('hidden');
     });
 
-    // 🔑 LocalStorage anahtar isimleri
-    const TOKEN_KEY = 'kadis_token';
-    const ROLE_KEY = 'kadis_role';
-
     // Giriş
     loginForm.addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -143,32 +150,40 @@
 
       const email = document.getElementById('loginEmail').value.trim();
       const password = document.getElementById('loginPassword').value;
-      const role = document.getElementById('loginRole').value;
+      const selectedRole = document.getElementById('loginRole').value; // Kullanıcının seçtiği rol
 
       try {
         const res = await fetch(`${API_BASE}/api/auth/login`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, password, role })
+          body: JSON.stringify({ email, password }) // rolü backend'e GÖNDERMİYORUZ
         });
 
         if (!res.ok) {
-          let msg = 'Giriş başarısız.';
-          try {
-            const data = await res.json();
-            if (data && data.message) msg = data.message;
-          } catch (_) {
-            const text = await res.text();
-            if (text) msg = text;
-          }
-          throw new Error(msg);
+          const text = await res.text();
+          throw new Error(text || 'Giriş başarısız.');
         }
 
         const data = await res.json();
 
-        // Token ve rolü sakla
-        localStorage.setItem(TOKEN_KEY, data.token);
-        localStorage.setItem(ROLE_KEY, data.role);
+        // Backend'den gelen gerçek rol
+        const realRole = data.role;
+
+        // Seçilen rol ile gerçek rol uyuşmazsa hata ver
+        if (selectedRole !== realRole) {
+          const gercek = roleLabels[realRole] || realRole;
+          const secilen = roleLabels[selectedRole] || selectedRole;
+
+          loginMsg.textContent =
+            `Bu hesap için kayıtlı rol: "${gercek}", ancak girişte "${secilen}" seçtiniz. ` +
+            `Lütfen doğru rolü seçerek tekrar deneyin.`;
+          loginMsg.classList.remove('hidden');
+          return;
+        }
+
+        // Token ve rolü sakla (YENİ ANAHTARLAR)
+        localStorage.setItem('kadis_token', data.token);
+        localStorage.setItem('kadis_role', data.role);
 
         // Role göre yönlendirme
         if (data.role === 'candidate') {
@@ -181,8 +196,8 @@
           window.location.href = '/';
         }
       } catch (err) {
-        console.error('Login error:', err);
-        loginMsg.textContent = err.message || 'Sunucuya erişilemedi veya giriş başarısız. Lütfen bilgilerinizi kontrol edip tekrar deneyin.';
+        console.error(err);
+        loginMsg.textContent = 'Sunucuya erişilemedi veya giriş başarısız. Lütfen bilgilerinizi kontrol edip tekrar deneyin.';
         loginMsg.classList.remove('hidden');
       }
     });
@@ -203,16 +218,16 @@
           body: JSON.stringify({ email, password, role })
         });
 
+        const text = await res.text();
+        let data;
+        try {
+          data = JSON.parse(text);
+        } catch {
+          data = { message: text };
+        }
+
         if (!res.ok) {
-          let msg = 'Kayıt başarısız.';
-          try {
-            const data = await res.json();
-            if (data && data.message) msg = data.message;
-          } catch (_) {
-            const text = await res.text();
-            if (text) msg = text;
-          }
-          throw new Error(msg);
+          throw new Error(data.message || 'Kayıt başarısız.');
         }
 
         registerMsg.textContent = 'Kayıt başarılı. Giriş yapabilirsiniz.';
@@ -220,7 +235,7 @@
         registerMsg.classList.remove('text-red-400');
         registerMsg.classList.add('text-emerald-400');
       } catch (err) {
-        console.error('Register error:', err);
+        console.error(err);
         registerMsg.textContent = err.message || 'Sunucuya erişilemedi veya kayıt başarısız. Lütfen tekrar deneyin.';
         registerMsg.classList.remove('hidden');
         registerMsg.classList.remove('text-emerald-400');
