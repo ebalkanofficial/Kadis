@@ -105,8 +105,9 @@
     const logoutBtn = document.getElementById('logoutBtn');
     const codeInput = document.getElementById('code');
 
-    const token = localStorage.getItem('token');
-    const role = localStorage.getItem('role');
+    // 🔑 ARTIK YENİ ANAHTARLAR
+    const token = localStorage.getItem('kadis_token');
+    const role  = localStorage.getItem('kadis_role');
 
     if (!token || role !== 'employer') {
       alert('Bu sayfayı kullanmak için önce işveren olarak KADİS\'e giriş yapmalısınız.');
@@ -114,8 +115,8 @@
     }
 
     function logout() {
-      localStorage.removeItem('token');
-      localStorage.removeItem('role');
+      localStorage.removeItem('kadis_token');
+      localStorage.removeItem('kadis_role');
       window.location.href = '/login.html';
     }
 
