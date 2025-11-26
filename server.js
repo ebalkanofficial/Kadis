@@ -155,6 +155,16 @@ const upload = multer({ storage });
 // Orta katmanlar
 app.use(cors());
 app.use(express.json());
+
+// 🔒 HTTP → HTTPS zorunlu yönlendirme (özellikle Render + custom domain için)
+app.use((req, res, next) => {
+  // x-forwarded-proto = Render / proxy arkası gerçek protokol
+  if (process.env.NODE_ENV === 'production' && req.headers['x-forwarded-proto'] !== 'https') {
+    return res.redirect('https://' + req.headers.host + req.url);
+  }
+  next();
+});
+
 app.use('/uploads', express.static('uploads'));
 
 // ---- Ana sayfa route'u (Landing Page) ----
