@@ -6,6 +6,7 @@ const path = require('path');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const multer = require('multer');
+const pdfParse = require('pdf-parse');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -19,6 +20,7 @@ const CANDIDATES_FILE = path.join(DATA_DIR, 'candidates.json');
 const USERS_FILE = path.join(DATA_DIR, 'users.json');
 const QUERIES_FILE = path.join(DATA_DIR, 'queries.json');
 const UPLOAD_DIR = path.join(__dirname, 'uploads');
+const SGK_DIR = path.join(UPLOAD_DIR, 'sgk');
 
 let candidates = {};
 let users = {};
@@ -113,6 +115,7 @@ function saveQueries() {
 // Klasörleri hazırla
 ensureDir(DATA_DIR);
 ensureDir(UPLOAD_DIR);
+ensureDir(SGK_DIR);
 
 // Sunucu açılırken verileri yükle
 loadCandidates();
@@ -151,6 +154,87 @@ const storage = multer.diskStorage({
 });
 
 const upload = multer({ storage });
+// SGK PDF upload ayarları (sadece PDF)
+const sgkStorage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, SGK_DIR);
+  },
+  filename: function (req, file, cb) {
+    const ext = path.extname(file.originalname) || '.pdf';
+    const unique = Date.now() + '-' + crypto.randomBytes(3).toString('hex');
+    cb(null, unique + ext);
+  }
+});
+
+function pdfFileFilter(req, file, cb) {
+  if (file.mimetype !== 'application/pdf') {
+    return cb(new Error('Sadece PDF dosyası yüklenebilir.'), false);
+  }
+  cb(null, true);
+}
+
+const uploadSgk = multer({ storage: sgkStorage, fileFilter: pdfFileFilter });
+
+// SGK PDF analiz fonksiyonu (MVP)
+async function analyzeSgkPdf(filePath) {
+  const buf = fs.readFileSync(filePath);
+  const data = await pdfParse(buf);
+
+  const text = data.text || '';
+  const metadata = data.info || {};
+
+  let score = 100;
+  const notes = [];
+
+  // SGK hizmet dökümü format kontrolü (çok basit)
+  if (!/HİZMET DÖKÜMÜ/i.test(text) && !/Sosyal Güvenlik Kurumu/i.test(text)) {
+    score -= 40;
+    notes.push('Metin SGK hizmet dökümü formatına benzemiyor.');
+  }
+
+  // Toplam prim günü yakalama (örnek)
+  let totalPrimDays = '';
+  const primMatch = text.match(/Toplam\s+Prim\s+Gün(?:ü|u)\s*:\s*(\d+)/i);
+  if (primMatch) {
+    totalPrimDays = primMatch[1];
+  } else {
+    score -= 20;
+    notes.push('Toplam prim günü alanı bulunamadı.');
+  }
+
+  // Son çalışılan şirket unvanını yakalama (örnek)
+  let lastCompany = '';
+  const companyMatch = text.match(/İşveren\s+Unvan[ıi]\s*:\s*(.+)/i);
+  if (companyMatch) {
+    lastCompany = companyMatch[1].trim();
+  } else {
+    notes.push('Son işveren unvanı net tespit edilemedi.');
+  }
+
+  // Metadata kontrolü: oluşturma ve değiştirme tarihleri farklı mı?
+  if (metadata.ModDate && metadata.CreationDate && metadata.ModDate !== metadata.CreationDate) {
+    score -= 20;
+    notes.push('PDF, oluşturulduktan sonra değiştirilmiş görünüyor (metadata).');
+  }
+
+  if (score < 0) score = 0;
+
+  let status = 'suspected';
+  if (score >= 75) status = 'verified';
+  else if (score >= 40) status = 'pending';
+  else status = 'suspected';
+
+  return {
+    status,
+    score,
+    parsed: {
+      totalPrimDays,
+      lastCompany
+    },
+    notes: notes.join(' | ')
+  };
+}
+
 
 // Orta katmanlar
 app.use(cors());
@@ -333,7 +417,7 @@ app.post('/api/candidates', authMiddleware, upload.single('photo'), (req, res) =
   const expiresAt = getExpiryDateISO();
   const photoFilename = req.file ? req.file.filename : '';
 
-  candidates[code] = {
+    candidates[code] = {
     fullName,
     email,
     nationalId: nationalId || '',
@@ -345,7 +429,18 @@ app.post('/api/candidates', authMiddleware, upload.single('photo'), (req, res) =
     createdAt,
     expiresAt,           // 🔥 7 gün sonra bitecek
     ownerEmail: ownerEmail,
-    isArchived: false
+    isArchived: false,
+    sgkVerification: {
+      status: 'none',        // 'none' | 'pending' | 'verified' | 'suspected'
+      score: 0,
+      filePath: '',
+      parsed: {
+        totalPrimDays: '',
+        lastCompany: ''
+      },
+      checkedAt: null,
+      notes: ''
+    }
   };
 
   saveCandidates();
@@ -357,6 +452,68 @@ app.post('/api/candidates', authMiddleware, upload.single('photo'), (req, res) =
     code,
     expiresAt           // front-end'e de bildiriyoruz
   });
+});
+
+// Aday SGK Hizmet Dökümü yükleme & analiz
+app.post('/api/candidates/sgk-upload', authMiddleware, uploadSgk.single('sgkPdf'), async (req, res) => {
+  try {
+    if (req.user.role !== 'candidate') {
+      return res.status(403).json({ message: 'Bu işlemi sadece aday rolü yapabilir.' });
+    }
+
+    if (!req.file) {
+      return res.status(400).json({ message: 'SGK hizmet dökümü PDF dosyası gereklidir.' });
+    }
+
+    const filePath = req.file.path;
+    const ownerEmail = req.user.email;
+
+    // Son (aktif) aday kaydını bul
+    const activeCodes = Object.entries(candidates)
+      .filter(([code, cand]) => cand.ownerEmail === ownerEmail && !cand.isArchived)
+      .sort((a, b) => (a[1].createdAt < b[1].createdAt ? 1 : -1));
+
+    if (activeCodes.length === 0) {
+      return res.status(404).json({ message: 'Önce bir KADİS aday kaydı oluşturmanız gerekiyor.' });
+    }
+
+    const [code, cand] = activeCodes[0];
+
+    // PDF analizini yap
+    const analysis = await analyzeSgkPdf(filePath);
+
+    // Aday kaydını güncelle
+    cand.sgkVerification = {
+      status: analysis.status,
+      score: analysis.score,
+      filePath: filePath.replace(__dirname, ''),
+      parsed: analysis.parsed,
+      checkedAt: new Date().toISOString(),
+      notes: analysis.notes
+    };
+
+    // Eğer doğrulandıysa, parsed verileri profile da yaz
+    if (analysis.status === 'verified') {
+      if (analysis.parsed.totalPrimDays) {
+        cand.totalPrimDays = analysis.parsed.totalPrimDays;
+      }
+      if (analysis.parsed.lastCompany) {
+        cand.lastCompany = analysis.parsed.lastCompany;
+      }
+    }
+
+    saveCandidates();
+
+    return res.json({
+      message: 'SGK hizmet dökümü analiz edildi.',
+      code,
+      sgkVerification: cand.sgkVerification
+    });
+
+  } catch (err) {
+    console.error('SGK upload / analiz hatası:', err);
+    return res.status(500).json({ message: 'SGK dosyası analiz edilirken hata oluştu.' });
+  }
 });
 
 // ---- Kod ile aday sorgulama (sadece employer) ----

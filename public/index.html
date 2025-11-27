@@ -44,7 +44,6 @@
         </p>
 
         <form id="candidateForm" class="space-y-4" enctype="multipart/form-data">
-          
           <div>
             <label class="font-semibold text-sm">Ad Soyad</label>
             <input id="fullName" type="text"
@@ -111,6 +110,26 @@
             KADİS Doğrulama Kodu Oluştur
           </button>
         </form>
+
+        <!-- SGK Hizmet Dökümü Yükleme Bölümü -->
+        <hr class="my-4 border-slate-800">
+
+        <h2 class="text-sm font-bold mb-2">SGK Hizmet Dökümü Yükle</h2>
+        <p class="text-[11px] text-slate-400 mb-2">
+          E-Devlet üzerinden indirdiğiniz SGK Hizmet Dökümü PDF'ini yükleyerek profilinizi güçlendirebilirsiniz.
+          Sistem dosyayı analiz eder, sahte olma ihtimaline karşı kontrol eder ve güvenliyse prim günü ile son işveren
+          bilgilerinizi profilinize işler.
+        </p>
+
+        <input id="sgkPdf" type="file" accept="application/pdf"
+          class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 mt-1 text-sm" />
+
+        <button id="sgkUploadBtn"
+          class="w-full mt-2 bg-emerald-500 text-white text-sm font-semibold py-2 rounded-lg hover:bg-emerald-600">
+          SGK PDF Yükle & Analiz Et
+        </button>
+
+        <p id="sgkStatusMsg" class="mt-2 text-[11px] text-slate-300"></p>
 
         <div id="result" class="mt-4 text-sm text-center text-emerald-400"></div>
       </div>
@@ -209,6 +228,7 @@
 
     loadMyCandidates();
 
+    // Aday formu (KADİS kodu oluşturma)
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
 
@@ -269,7 +289,7 @@
                 Not: Yeni bir KADİS kaydı oluşturduğunuzda bu kod dışındaki önceki kodlarınız otomatik olarak geçersiz olur.
               </p>
             </div>
-          `;
+          ";
 
           // QR oluştur
           const qrCanvas = document.getElementById('kadisQr');
@@ -291,6 +311,53 @@
         resultDiv.textContent = 'Sunucuya bağlanırken hata oluştu.';
       }
     });
+
+    // SGK PDF yükleme & analiz
+    const sgkInput = document.getElementById('sgkPdf');
+    const sgkBtn = document.getElementById('sgkUploadBtn');
+    const sgkMsg = document.getElementById('sgkStatusMsg');
+
+    if (sgkBtn) {
+      sgkBtn.addEventListener('click', async () => {
+        sgkMsg.textContent = '';
+
+        if (!sgkInput.files || !sgkInput.files[0]) {
+          sgkMsg.textContent = 'Lütfen SGK hizmet dökümü PDF\'ini seçin.';
+          return;
+        }
+
+        const formData = new FormData();
+        formData.append('sgkPdf', sgkInput.files[0]);
+
+        try {
+          const res = await fetch('/api/candidates/sgk-upload', {
+            method: 'POST',
+            headers: {
+              'Authorization': 'Bearer ' + token
+            },
+            body: formData
+          });
+
+          const data = await res.json();
+
+          if (!res.ok) {
+            sgkMsg.textContent = data.message || 'SGK dosyası yüklenirken hata oluştu.';
+            return;
+          }
+
+          sgkMsg.textContent =
+            'Analiz durumu: ' + (data.sgkVerification.status || '').toUpperCase() +
+            ' (Skor: ' + data.sgkVerification.score + ') - ' +
+            (data.sgkVerification.notes || '');
+
+          // Profil verileri güncellenmiş olabilir, dashboard'u yenile
+          loadMyCandidates();
+        } catch (err) {
+          console.error(err);
+          sgkMsg.textContent = 'Sunucuya bağlanırken hata oluştu.';
+        }
+      });
+    }
   </script>
 
 </body>
